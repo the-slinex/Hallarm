@@ -904,21 +904,85 @@ class MainActivity : Activity() {
         val u = data.data ?: return
         when (req) {
             10 -> {
-                val cur = contentResolver.query(
-                    u,
-                    arrayOf(
-                        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                        ContactsContract.CommonDataKinds.Phone.NUMBER,
-                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-                    ),
-                    null, null, null
+    android.util.Log.d("CONTACTOS_DEBUG", "URI recibida: $u")
+
+    val cur = contentResolver.query(
+        u,
+        null,
+        null,
+        null,
+        null
+    )
+
+    cur?.use { cursor ->
+        android.util.Log.d(
+            "CONTACTOS_DEBUG",
+            "Columnas recibidas: ${cursor.columnNames.joinToString()}"
+        )
+
+        if (cursor.moveToFirst()) {
+            for (i in cursor.columnNames.indices) {
+                val columnName = cursor.getColumnName(i)
+                val value = cursor.getString(i)
+
+                android.util.Log.d(
+                    "CONTACTOS_DEBUG",
+                    "$columnName = $value"
                 )
-                cur?.use {
-                    if (it.moveToFirst()) {
-                        contactCb?.invoke(it.getString(0) ?: "", it.getString(1) ?: "", it.getString(2) ?: "")
-                    }
-                }
             }
+
+            val nameIndex = cursor.getColumnIndex(
+                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
+            )
+
+            val numberIndex = cursor.getColumnIndex(
+                ContactsContract.CommonDataKinds.Phone.NUMBER
+            )
+
+            val idIndex = cursor.getColumnIndex(
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+            )
+
+            android.util.Log.d(
+                "CONTACTOS_DEBUG",
+                "Índices: nombre=$nameIndex, número=$numberIndex, contacto=$idIndex"
+            )
+
+            val name = if (nameIndex >= 0) {
+                cursor.getString(nameIndex) ?: ""
+            } else {
+                ""
+            }
+
+            val number = if (numberIndex >= 0) {
+                cursor.getString(numberIndex) ?: ""
+            } else {
+                ""
+            }
+
+            val contactId = if (idIndex >= 0) {
+                cursor.getString(idIndex) ?: ""
+            } else {
+                ""
+            }
+
+            android.util.Log.d(
+                "CONTACTOS_DEBUG",
+                "RESULTADO: nombre=$name, número=$number, ID=$contactId"
+            )
+
+            contactCb?.invoke(name, number, contactId)
+        } else {
+            android.util.Log.e(
+                "CONTACTOS_DEBUG",
+                "La consulta no devolvió registros."
+            )
+        }
+    } ?: android.util.Log.e(
+        "CONTACTOS_DEBUG",
+        "La consulta devolvió un Cursor nulo."
+    )
+}
             11 -> {
                 try {
                     contentResolver.takePersistableUriPermission(u, Intent.FLAG_GRANT_READ_URI_PERMISSION)
