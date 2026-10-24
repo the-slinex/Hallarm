@@ -1073,10 +1073,10 @@ class MainActivity : Activity() {
                     extra.addView(modes)
                 }
                 extra.addView(Ui.button(this, "📇  Contactar", Ui.GREEN, Color.WHITE) {
-                    contactCb = { n, id, num ->
+                    contactCb = { n, num, id ->
                         cName = n
-                        cId = id
                         cNum = num
+                        cId = id
                         render()
                     }
                     startActivityForResult(
